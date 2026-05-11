@@ -30,9 +30,27 @@
                         {{ expense.description }}
                     </p>
 
-                    <small>
+                    <small class="d-block mb-3">
                         {{ expense.user.username }}
                     </small>
+
+                    <!-- Update Button -->
+
+                    <a href="{% url 'update_expense' expense.id %}"
+                    class="btn btn-warning btn-sm">
+
+                        Edit
+
+                    </a>
+
+                    <!-- Delete Button -->
+
+                    <a href="{% url 'delete_expense' expense.id %}"
+                    class="btn btn-danger btn-sm">
+
+                        Delete
+
+                    </a>
 
                 </div>
 
