@@ -4,6 +4,7 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required
 from .models import *
 from .forms import *
+from django.db.models import Sum
 
 
 
@@ -71,8 +72,28 @@ def expense_list(request):
 
     expenses = Expense.objects.filter(user=request.user)
 
+    total_expenses = expenses.aggregate(
+        Sum('amount')
+    )['amount__sum'] or 0
+
+    budget = Budget.objects.filter(
+        user=request.user
+    ).first()
+
+    monthly_budget = budget.monthly_budget if budget else 0
+
+    remaining_budget = monthly_budget - total_expenses
+
     return render(request, 'expenses/expense_list.html', {
-        'expenses': expenses
+
+        'expenses': expenses,
+
+        'total_expenses': total_expenses,
+
+        'monthly_budget': monthly_budget,
+
+        'remaining_budget': remaining_budget
+
     })
 
 @login_required
@@ -146,4 +167,39 @@ def delete_expense(request, expense_id):
 
     return render(request, 'expenses/delete_expense.html', {
         'expense': expense
+    })
+
+
+
+@login_required
+def set_budget(request):
+
+    budget, created = Budget.objects.get_or_create(
+        user=request.user,
+        defaults={'monthly_budget': 0}
+    )
+
+    if request.method == 'POST':
+
+        form = BudgetForm(
+            request.POST,
+            instance=budget
+        )
+
+        if form.is_valid():
+
+            budget = form.save(commit=False)
+
+            budget.user = request.user
+
+            budget.save()
+
+            return redirect('expense_list')
+
+    else:
+
+        form = BudgetForm(instance=budget)
+
+    return render(request, 'expenses/set_budget.html', {
+        'form': form
     })

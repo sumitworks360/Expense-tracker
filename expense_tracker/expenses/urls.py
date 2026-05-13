@@ -19,4 +19,6 @@ urlpatterns = [
 
     path('delete/<int:expense_id>', views.delete_expense, name = "delete_expense"),
 
+    path('set-budget', views.set_budget, name = "set_budget"),
+
 ]
